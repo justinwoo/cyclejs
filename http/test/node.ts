@@ -1,17 +1,17 @@
 'use strict';
-
+declare var process: any;
 var uri = 'http://localhost:5000';
 process.env.PORT = 5000;
-require('./support/server');
-require('./common')(uri);
+import './support/server';
+import common from './common';
+common(uri);
 
 // Node.js specific ============================================================
-var assert = require('assert');
-var Rx = require('rxjs');
-var Cycle = require('@cycle/rxjs-run').default;
-var src = require('../lib/index');
-var makeHTTPDriver = src.makeHTTPDriver;
-var globalSandbox = require('./support/global');
+import * as assert from 'assert';
+import * as Rx from 'rxjs';
+import Cycle from '@cycle/rxjs-run';
+import {makeHTTPDriver} from '../src/index';
+import globalSandbox from './support/global';
 
 describe('HTTP Driver in Node.js', function () {
   it('should auto-execute HTTP request when without listening to response stream',
@@ -111,7 +111,7 @@ describe('HTTP Driver in Node.js', function () {
 
       output.sources.HTTP.select()
         .mergeAll()
-        .subscribe(function (r) {
+        .subscribe(function (r: any) {
           assert.ok(r.request);
           assert.strictEqual(r.request._id, 'petRequest');
           done();

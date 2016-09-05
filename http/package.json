@@ -29,7 +29,7 @@
   },
   "scripts": {
     "lint": "../node_modules/.bin/tslint -c tslint.json src/*.ts",
-    "test-node": "../node_modules/.bin/mocha test/node.js",
+    "test-node": "../node_modules/.bin/mocha --require ts-node/register test/node.ts",
     "test-browser": "npm run start-test-support-server && ../node_modules/.bin/testem ci -l Chrome,Firefox && npm run stop-test-support-server",
     "start-test-support-server": "PORT=8070 node test/support/server.js & echo $! > test-support-server.pid",
     "stop-test-support-server": "if ps -p $(cat test-support-server.pid)> /dev/null; then kill -KILL $(cat test-support-server.pid); fi && rm test-support-server.pid",

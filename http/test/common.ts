@@ -1,12 +1,12 @@
 'use strict';
 /* global describe, it */
-var assert = require('assert');
-var src = require('../lib/index');
-var Rx = require('rxjs');
-var Cycle = require('@cycle/rxjs-run').default;
-var makeHTTPDriver = src.makeHTTPDriver;
+import * as assert from 'assert';
+import {makeHTTPDriver} from '../src/index';
+import {Response} from '../src/interfaces';
+import * as Rx from 'rxjs';
+import Cycle from '@cycle/rxjs-run';
 
-function run(uri) {
+function run(uri: string): void {
   describe('makeHTTPDriver', function () {
     it('should be a driver factory', function () {
       assert.strictEqual(typeof makeHTTPDriver, 'function');
@@ -20,7 +20,7 @@ function run(uri) {
 
     it('should throw when request stream emits neither string nor object',
       function(done) {
-        function main(sources) {
+        function main(sources: any) {
           return {
             HTTP: Rx.Observable.of(123)
           }
@@ -29,7 +29,7 @@ function run(uri) {
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
         output.sources.HTTP.select().mergeAll().subscribe(
           function next() { assert.fail(); },
-          function error(err) {
+          function error(err: any) {
             assert.strictEqual(err.message, 'Observable of requests given to ' +
               'HTTP Driver must emit either URL strings or objects with ' +
               'parameters.'
@@ -52,7 +52,7 @@ function run(uri) {
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
         output.sources.HTTP.select().mergeAll().subscribe(
           function next() { assert.fail(); },
-          function error(err) {
+          function error(err: any) {
             assert.strictEqual(
               err.message, 'Please provide a `url` property in the request ' +
               'options.'
@@ -75,10 +75,10 @@ function run(uri) {
 
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
 
-        output.sources.HTTP.select().subscribe(function(response$) {
+        output.sources.HTTP.select().subscribe(function(response$: any) {
           assert.strictEqual(typeof response$.request, 'object');
           assert.strictEqual(response$.request.url, uri + '/hello');
-          response$.subscribe(function(response) {
+          response$.subscribe(function(response: Response) {
             assert.strictEqual(response.status, 200);
             assert.strictEqual(response.text, 'Hello World');
             done();
@@ -119,12 +119,12 @@ function run(uri) {
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
 
         var response$$ = output.sources.HTTP.select();
-        response$$.subscribe(function(response$) {
+        response$$.subscribe(function(response$: any) {
           assert.strictEqual(response$.request.url, uri + '/pet');
           assert.strictEqual(response$.request.method, 'POST');
           assert.strictEqual(response$.request.send.name, 'Woof');
           assert.strictEqual(response$.request.send.species, 'Dog');
-          response$.subscribe(function(response) {
+          response$.subscribe(function(response: Response) {
             assert.strictEqual(response.status, 200);
             assert.strictEqual(response.text, 'added Woof the Dog');
             done();
@@ -187,15 +187,15 @@ function run(uri) {
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
 
         var response$$ = output.sources.HTTP.select();
-        response$$.subscribe(function(response$) {
+        response$$.subscribe(function(response$: any) {
           assert.strictEqual(response$.request.url, uri + '/querystring');
           assert.strictEqual(response$.request.method, 'GET');
           assert.strictEqual(response$.request.query.foo, 102030);
           assert.strictEqual(response$.request.query.bar, 'Pub');
-          response$.subscribe(function(response) {
+          response$.subscribe(function(response: Response) {
             assert.strictEqual(response.status, 200);
-            assert.strictEqual(response.body.foo, '102030');
-            assert.strictEqual(response.body.bar, 'Pub');
+            assert.strictEqual(response.body['foo'], '102030');
+            assert.strictEqual(response.body['bar'], 'Pub');
             done();
           });
         });
@@ -218,12 +218,12 @@ function run(uri) {
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
         var response$$ = output.sources.HTTP.select();
 
-        response$$.subscribe(function(response$) {
+        response$$.subscribe(function(response$: any) {
           assert.strictEqual(response$.request.url, uri + '/delete');
           assert.strictEqual(response$.request.method, 'DELETE');
-          response$.subscribe(function(response) {
+          response$.subscribe(function(response: Response) {
             assert.strictEqual(response.status, 200);
-            assert.strictEqual(response.body.deleted, true);
+            assert.strictEqual(response.body['deleted'], true);
             done();
           });
         });
@@ -246,13 +246,13 @@ function run(uri) {
         var response$$ = output.sources.HTTP.select();
 
         response$$
-          .map(function (response$) {
+          .map(function (response$: any) {
             response$.request = 1234;
             return response$;
           })
-          .subscribe(function next(response$) {
+          .subscribe(function next(response$: any) {
             assert.fail();
-          }, function error(err) {
+          }, function error(err: any) {
             assert.strictEqual(err instanceof TypeError, true);
           });
         output.run();
@@ -270,12 +270,12 @@ function run(uri) {
         var output = Cycle(main, { HTTP: makeHTTPDriver() });
         var response$$ = output.sources.HTTP.select();
 
-        response$$.subscribe(function(response$) {
+        response$$.subscribe(function(response$: any) {
           assert.strictEqual(typeof response$.request, 'object');
           assert.strictEqual(response$.request.url, uri + '/error');
           response$.subscribe(
             function next() { assert.fail(); },
-            function error(err) {
+            function error(err: any) {
               assert.strictEqual(err.status, 500);
               assert.strictEqual(err.message, 'Internal Server Error');
               assert.strictEqual(err.response.text, 'boom');
@@ -337,10 +337,10 @@ function run(uri) {
         var scopedRequest$ = httpSource.isolateSink(request$, 'foo');
         var scopedHTTPSource = httpSource.isolateSource(httpSource, 'foo');
 
-        scopedHTTPSource.select().subscribe(function(response$) {
+        scopedHTTPSource.select().subscribe(function(response$: any) {
           assert.strictEqual(typeof response$.request, 'object');
           assert.strictEqual(response$.request.url, uri + '/hello');
-          response$.subscribe(function(response) {
+          response$.subscribe(function(response: Response) {
             assert.strictEqual(response.status, 200);
             assert.strictEqual(response.text, 'Hello World');
             done();
@@ -356,4 +356,4 @@ function run(uri) {
   });
 }
 
-module.exports = run;
+export default run;
